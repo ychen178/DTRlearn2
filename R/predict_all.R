@@ -360,21 +360,34 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
       if (is.matrix(H)) {
         p = dim(H)[2]
         n = dim(H)[1]
-        fit[[i]] = (object[[i]]$co[p+2] + H %*% object[[i]]$co[(p+3):(2*p+2)]) #the interaction terms
-        treatment[[i]] = 2*(fit[[i]]>0) - 1
-        Q[[i]] = cbind(rep(1,n), H, rep(1,n), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
+        XX1 = cbind(rep(1,n), H, rep(1,n), diag(n)%*%H)
+        XX2 = cbind(rep(1,n), H, rep(-1,n),-diag(n)%*%H)
+        Q1 = XX1 %*% object[[i]]$co
+        Q2 = XX2 %*% object[[i]]$co
+        Q[[i]] = apply(cbind(Q1, Q2), 1, max)
+        treatment[[i]] = 2 * (Q1 > Q2) - 1
+        if (sum(Q1==Q2)==n)  treatment[[i]] = rbinom(n, 1, 0.5)
+        #fit[[i]] = (object[[i]]$co[p+2] + H %*% object[[i]]$co[(p+3):(2*p+2)]) #the interaction terms
+        #treatment[[i]] = 2*(fit[[i]]>0) - 1
+        #Q[[i]] = cbind(rep(1,n), H, rep(1,n), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
       }
       else if (is.list(H)) {
         p = dim(H[[i]])[2]
         n = dim(H[[i]])[1]
-        fit[[i]] = (object[[i]]$co[p+2] + H[[i]] %*% object[[i]]$co[(p+3):(2*p+2)])
-        treatment[[i]] = 2*(fit[[i]]>0) - 1
-        if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 0.5) #no tailoring vars, randomize treatments
-        Q[[i]] = cbind(rep(1,n), H[[i]], rep(1,n), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co
+        XX1 = cbind(rep(1,n), H[[i]], rep(1,n), diag(n)%*%H[[i]])
+        XX2 = cbind(rep(1,n), H[[i]], rep(-1,n),-diag(n)%*%H[[i]])
+        Q1 = XX1 %*% object[[i]]$co
+        Q2 = XX2 %*% object[[i]]$co
+        Q[[i]] = apply(cbind(Q1, Q2), 1, max)
+        treatment[[i]] = 2 * (Q1 > Q2) - 1
+        if (sum(Q1==Q2)==n)  treatment[[i]] = rbinom(n, 1, 0.5)
+        # fit[[i]] = (object[[i]]$co[p+2] + H[[i]] %*% object[[i]]$co[(p+3):(2*p+2)])
+        # treatment[[i]] = 2*(fit[[i]]>0) - 1
+        # if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 0.5) #no tailoring vars, randomize treatments
+        # Q[[i]] = cbind(rep(1,n), H[[i]], rep(1,n), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co
       }
-      else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrice"))
-
-      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
+      else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrices"))
+      #if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
     }  # end of K stages
     return = list(Q=Q, treatment = treatment) # fit is the decision function
   }
