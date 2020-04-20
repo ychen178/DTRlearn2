@@ -9,7 +9,7 @@ This function implements a variety of outcome-weighted learning methods for esti
 }
 \usage{
 owl(H, AA, RR, n, K, pi='estimated', res.lasso=T, loss='hinge', kernel='linear',
-augment=T, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
+augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=3)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -31,7 +31,7 @@ augment=T, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
 
   \item{kernel}{kernel function to use under SVM hinge loss or SVM ramp loss. \code{"linear"} and \code{"rbf"} kernel are implemented under SVM hinge loss; \code{"linear"} kernel is implemented under SVM ramp loss. The default is \code{kernel="linear"}.}
 
-  \item{augment}{whether or not to use augmented outcomes at each stage. Augmentation is recommended when there are multiple stages and the sample size is small. The default is \code{augment=TRUE}.}
+  \item{augment}{whether or not to use augmented outcomes at each stage. Augmentation is recommended when there are multiple stages and the sample size is small. The default is \code{augment=FALSE}.}
 
   \item{c}{a vector specifies the values of the regularization parameter C for tuning under SVM hinge loss or SVM ramp loss. The default is \code{c=2^(-2:2)}. In practice, a wider range of \code{c} can be specified based on the data. }
 
@@ -40,7 +40,7 @@ augment=T, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
   \item{s}{a vector specifies the values of the slope parameter in the SVM ramp loss for tuning, i.e., when \code{loss="ramp"} and \code{kernel="linear"}.
   The default is \code{c=2^(-2:2)}. In practice, a wider range of \code{s} can be specified based on the data. }
 
-  \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=4}.}
+  \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=3}.}
 
 }
 

@@ -47,14 +47,14 @@ ql <- function (H, AA, RR, K, pi='estimated', lasso=TRUE, m=4) {
       Y = AA[[j]]*0.5 + 0.5
       if (is.list(H)) Hj = H[[j]]
       else Hj = H
-      pi_logit = cv.glmnet(Hj, Y, family = "binomial", nfolds=3)
+      pi_logit = cv.glmnet(Hj, Y, family = "binomial", nfolds=m)
       pred = predict(pi_logit, Hj, s="lambda.min")
       pi[[j]] = exp(pred)/(1 + exp(pred)) * (Y==1) + 1/(1 + exp(pred)) * (Y==0)
     }
   }
   if(pi[[1]][1]=='estimated' & K==1) {
     Y = AA*0.5 + 0.5
-    pi_logit = cv.glmnet(H, Y, family = "binomial", nfolds=3)
+    pi_logit = cv.glmnet(H, Y, family = "binomial", nfolds=m)
     pred = predict(pi_logit, H, s="lambda.min")
     pi = exp(pred)/(1 + exp(pred)) * (Y==1) + 1/(1 + exp(pred)) * (Y==0)
   }
@@ -73,7 +73,7 @@ ql <- function (H, AA, RR, K, pi='estimated', lasso=TRUE, m=4) {
     for (j in K:1) {
       R=RR[[j]]+R_future
       if (min(R)!=max(R)) {
-        results[[j]] = ql_single(H, AA[[j]], R, pentype=pentype, m=4)
+        results[[j]] = ql_single(H, AA[[j]], R, pentype=pentype, m=m)
         R_future = results[[j]]$Q
       } else {
         results[[j]]=list(co=rep(0,2+2*dim(H)[2]),Q=R)
@@ -85,7 +85,7 @@ ql <- function (H, AA, RR, K, pi='estimated', lasso=TRUE, m=4) {
     for (j in K:1) {
       R=RR[[j]]+R_future
       if (min(R) != max(R)) {
-        results[[j]] = ql_single (H[[j]], AA[[j]], R, pentype=pentype, m=4)
+        results[[j]] = ql_single (H[[j]], AA[[j]], R, pentype=pentype, m=m)
         R_future = results[[j]]$Q
       } else {
         results[[j]] = list(co = rep(0,2+2*dim(H[[j]])[2]), Q = R)
