@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------#
 # functions for outcome-weighted learning with ramp loss (private functions)
-# Yuan Chen, June 2018
+# Yuan Chen, April 2020
 #-----------------------------------------------------------------------------------#
 
 ramp.loss <- function(u,s){
@@ -51,16 +51,13 @@ owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso
     dh2 = -(eta.init < -0.5 * s)/s
     f = -(1 - 2*C*Q %*% (Wabs* dh2)/s)/2 *Wabs
 
-    # truncate the small eigenvalues
     H = Q1/s^2
-    eigmat = eigen(H)
-    maxev = max(eigmat$values)
-    H = eigmat$vectors %*% diag(ifelse(eigmat$values<maxev*1e-5, maxev*1e-5, eigmat$values)) %*% t(eigmat$vectors)
+    H = H + 1e-8 * diag(NCOL(K)) %*% (tcrossprod(Wabs))
     fit <- tryCatch(ipop(f, H, A=t(As*Wabs)/s, b=-C*sum(As*Wabs*dh2), l=rep(0, n), u=rep(C,n), r=0), error=function(e) e)
 
     if("error" %in% class(fit))  {
       has_error = 1
-      print(fit)  # print the error message
+      print(fit)
       break
     }
 
@@ -138,7 +135,6 @@ owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max
   OS = NA
 
   for(i in 1:length(bigC)){
-    #print(c("C", bigC[i]))
     if(is.null(beta.init)){
       fit_temp <- owl_single(X, A, Y, PrTx, kernel = "linear")
       beta.init = c(fit_temp$beta0, fit_temp$beta)

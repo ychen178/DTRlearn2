@@ -22,7 +22,6 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
   has_error = 0
 
   for (k in K:1) {
-    #print(c("stage k", k))
     A=AA[[k]]
 
     if (min(RR[[k]]+QR_future) != max(RR[[k]]+QR_future)) {
@@ -34,8 +33,6 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
       QR_future = max(RR[[k]] + QR_future)
       QL[,k] = max(RR[[k]] + QR_future)
     }
-
-    # compute R_p (the pseudo-outcome for Qik -- the augmented outcome from stage k to K)
     if(k==K)  R_p = Rsum*select/prob[,K]
     else if (k==K-1)  R_p = Rsum*select/prob[,K] + QLproj[,(k+1):K] * Qspecify[,(k+1):K]
     else  R_p = Rsum*select/prob[,K] + apply(QLproj[,(k+1):K] * Qspecify[,(k+1):K],1,sum)
@@ -74,7 +71,7 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
     }
 
     right = as.vector(models[[k]]$treatment==A)
-    select = select * right   #optimal from stage k to the end
+    select = select * right
 
     M[,k:K] = M[,k:K] * right
     if (k>1) C[,k:K] = M[,(k-1):(K-1)] - M[,k:K]
@@ -82,12 +79,9 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
       C[,2:K] = M[,1:(K-1)] - M[,2:K]
       C[,1] = rep(1,n) - M[,1]
     }
-    #print(c("sum(select)",sum(select)))
-    #print(c("sum(select & AA[[k]]==1)",sum(select & AA[[k]]==1)))
 
     Rsum=rep(0, n)
     for (j in k:K){
-      #print(c("j", j))
       if (j>1)  QLproj[,j] = (C[,j]-(1-pi[[j]])*M[,j-1])/prob[,j]
       else      QLproj[,1] = (C[,j]-(1-pi[[j]]))/prob[,j]
       Qspecify[,j] = QL[,j] + Rsum
