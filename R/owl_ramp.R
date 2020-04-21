@@ -52,7 +52,7 @@ owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso
     f = -(1 - 2*C*Q %*% (Wabs* dh2)/s)/2 *Wabs
 
     H = Q1/s^2
-    H = H + 1e-8 * diag(NCOL(K)) %*% (tcrossprod(Wabs))
+    H = H + 1e-8 * diag(n) %*% (tcrossprod(Wabs))
     fit <- tryCatch(ipop(f, H, A=t(As*Wabs)/s, b=-C*sum(As*Wabs*dh2), l=rep(0, n), u=rep(C,n), r=0), error=function(e) e)
 
     if("error" %in% class(fit))  {

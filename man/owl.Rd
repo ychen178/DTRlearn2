@@ -8,8 +8,8 @@ Integrated Outcome-weighted Learning for Estimating DTRs
 This function implements a variety of outcome-weighted learning methods for estimating general K-stage DTRs. Different loss functions - SVM hinge loss, SVM ramp loss, binomial deviance loss, and L2 loss - can be adopted to solve the weighted classification problem at each stage. Augmentation in the outcomes is allowed to improve efficiency especially when there are multiple stages with a small sample size. Cross validation is conducted to choose the best tuning parameters if any.
 }
 \usage{
-owl(H, AA, RR, n, K, pi='estimated', res.lasso=T, loss='hinge', kernel='linear',
-augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=3)
+owl(H, AA, RR, n, K, pi='estimated', res.lasso=TRUE, loss='hinge', kernel='linear',
+augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -40,7 +40,7 @@ augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=3)
   \item{s}{a vector specifies the values of the slope parameter in the SVM ramp loss for tuning, i.e., when \code{loss="ramp"} and \code{kernel="linear"}.
   The default is \code{c=2^(-2:2)}. In practice, a wider range of \code{s} can be specified based on the data. }
 
-  \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=3}.}
+  \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=4}.}
 
 }
 
@@ -97,9 +97,7 @@ Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
 Maintainer: Yuan Chen <yc3281@columbia.edu>
 }
-\note{
-%%  ~~further notes~~
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -127,7 +125,7 @@ pi_test = list(rep(0.5, n_test), rep(0.5, n_test))
 
 # estimate DTR with owl on the training sample
 owl_train = owl(H=list(H1_train, H2_train), AA=train$A, RR=train$R, n=n_train, K=2, pi=pi_train,
-    loss='hinge', augment=T, m=3)
+    loss='hinge', augment=TRUE, m=3)
 owl_train$stage1$beta
 owl_train$stage1$treatment
 owl_train$valuefun

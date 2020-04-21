@@ -3,7 +3,7 @@
 # Yuan Chen, April 2020
 #-----------------------------------------------------------------------------------#
 
-wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, m) {
+wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7) {
   
   if (kernel=='linear') {
     K = X %*% t(X)
@@ -15,13 +15,12 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, m) {
   }
   
   y = A * sign(wR)
-  H = outer(y, y, FUN = "*") * K
+  H = y %*% t(y) * K
   H = H + 1e-8 * diag(NCOL(K)) %*% (tcrossprod(wR))
   
   
   n = length(A)
-  solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(e) e)
-  
+  solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
   if ("error" %in% class(solution)) {
     return(list(beta0=NA, beta=NA, fit=NA, probability=NA, treatment=NA, sigma=NA, H=NA, alpha1=NA))
   }
@@ -51,7 +50,7 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, m) {
   
   
   if (kernel=='linear') {
-    model = list(beta0=bias, beta=w, fit=fit, probability=prob, treatment=2*(fit>0)-1, alpha1=alpha1, solution=solution) 
+    model = list(beta0=bias, beta=w, fit=fit, probability=prob, treatment=2*(fit>0)-1, alpha1=alpha1) #, solution=solution) 
     class(model)<-'linearcl'
   } else if (kernel=='rbf') {
     model = list(beta0=bias, fit=fit, probability=prob, treatment=2*(fit>0)-1, sigma=sigma, H=X, alpha1=alpha1)

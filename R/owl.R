@@ -111,9 +111,9 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
 
 
 ## a general K-stage outcome-weighted learning (changed default to augment=FALSE)
-owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=T, loss='hinge', kernel='linear', augment=FALSE, c=2.^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4) {
+owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel='linear', augment=FALSE, c=2.^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4) {
   
-  if(res.lasso==T) pentype = 'lasso'
+  if(res.lasso==TRUE) pentype = 'lasso'
   else if (res.lasso==F) pentype = 'LSE'
   else print("res.lasso should be TRUE or FALSE")
   

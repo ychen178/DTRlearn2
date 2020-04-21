@@ -6,11 +6,12 @@
 
 ###  prediction functions for intermediate steps (private functions)
 
-predict.linearcl<-function(object,x,...){
+predict.linearcl<-function(object,x){
   predict=sign(object$beta0+x%*%object$beta)
+  predict
 }
 
-predict.rbfcl<-function(object,x,...){
+predict.rbfcl<-function(object,x){
   rbf=rbfdot(sigma=object$sigma)
   n=dim(object$H)[1]
   if (is.matrix(x)) xm=dim(x)[1]
@@ -20,18 +21,12 @@ predict.rbfcl<-function(object,x,...){
   }else{   K<- matrix(0, xm, n)
   for (i in 1:xm) {K[i,]=apply(object$H,1,rbf,y=x[i,]) }}
   predict=sign(object$beta0+K%*%object$alpha1)
+  predict
 }
-
-predict.qsingle<-function(object,x,...){
-  p=dim(x)[2]
-  predict=sign(object$co[p+2]+x%*%object$co[(p+3):(2*p+2)])
-}
-
 
 
 ###  predict with owl() objects
-
-predict.owl <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
+predict.owl <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   
   # estimate pi if AA have inputs
   if(!is.null(AA) & is.null(pi)) {
@@ -46,17 +41,17 @@ predict.owl <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
   }
   
   res = list()
-  if(object$type == "owl_svmlinear") res = predict.owl_svmlinear(object, H, AA, RR, K, pi,...)
-  else if(object$type == "owl_svmrbf") res = predict.owl_svmrbf(object, H, AA, RR, K, pi,...)
-  else if(object$type == "owl_logit") res = predict.owl_logit(object, H, AA, RR, K, pi,...)
-  else if(object$type == "owl_l2") res = predict.owl_l2(object, H, AA, RR, K, pi,...)
-  else if(object$type == "has_error") res = predict.has_error(object, ...)
+  if(object$type == "owl_svmlinear") res = predict.owl_svmlinear(object, H, AA, RR, K, pi)
+  else if(object$type == "owl_svmrbf") res = predict.owl_svmrbf(object, H, AA, RR, K, pi)
+  else if(object$type == "owl_logit") res = predict.owl_logit(object, H, AA, RR, K, pi)
+  else if(object$type == "owl_l2") res = predict.owl_l2(object, H, AA, RR, K, pi)
+  else if(object$type == "has_error") res = predict.has_error(object)
   res
 }
 
 
 ###  predict with  hingelinear, aughingelinear object
-predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
+predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
   
   if (is.vector(H) & !is.list(H))  H = matrix(H, ncol=1)
   
@@ -118,7 +113,7 @@ predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
 }
 
 ###  predict with  hingerbf, aughingerbf   object
-predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
+predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
   
   if (is.vector(H) & !is.list(H))  H = matrix(H, ncol=1)
   fit = list()
@@ -196,7 +191,7 @@ predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
 
 
 ### predict with  logit / logitlasso  object
-predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
+predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
   
   if (is.vector(H) & !is.list(H))   H = matrix(H, ncol=1)
   fit = list()
@@ -264,7 +259,7 @@ predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
 
 
 ### predict based on   l2 / l2.lasso  owl() object
-predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
+predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
   
   if (is.vector(H) & !is.list(H))   H = matrix(H, ncol=1)
   fit = list()
@@ -330,13 +325,13 @@ predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL,...) {
 }
 
 ## handle the NA case (when there is error in the fitted object)
-predict.has_error = function(object, ...) {
+predict.has_error = function(object) {
   list(fit = NA, treatment = NA, valuefun = NA, benefit = NA)
 }
 
 
 ### predict with ql() object
-predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F, ...) {  # added whether to predict the fitted Q function under the given treatment
+predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit=FALSE, ...) {  # added whether to predict the fitted Q function under the given treatment
   
   if (is.vector(H) & !is.list(H))   H = matrix(H, ncol=1)
   Q = list()      # predicted optimal Q function
@@ -355,8 +350,14 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
       pi[[j]] = exp(pred)/(1 + exp(pred)) * (Y==1) + 1/(1 + exp(pred)) * (Y==0)
     }
   }
+
+  if (K==1) {
+    if (!is.null(AA) & !is.list(AA)) AA = list(AA)
+    if (!is.null(RR) & !is.list(RR)) RR = list(RR)
+    if (!is.null(pi) & !is.list(pi)) pi = list(pi)
+  }
   
-  if (is.null(AA) | is.null(RR)) { #only H and K available
+  if (is.null(RR)) { #no outcome
     for (i in 1:K) {
       if (is.matrix(H)) {
         p = dim(H)[2]
@@ -364,7 +365,8 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
         fit[[i]] = (object[[i]]$co[p+2] + H %*% object[[i]]$co[(p+3):(2*p+2)])
         treatment[[i]] = 2*(fit[[i]]>0) - 1
         if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
-        if(Qfun==T)  Q[[i]] = cbind(rep(1,n), H, c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
+        if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H, c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
+        if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H, c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H) %*% object[[i]]$co
       }
       else if (is.list(H)) {
         p = dim(H[[i]])[2]
@@ -372,19 +374,16 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
         fit[[i]] = (object[[i]]$co[p+2] + H[[i]] %*% object[[i]]$co[(p+3):(2*p+2)])
         treatment[[i]] = 2*(fit[[i]]>0) - 1
         if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5)
-        if(Qfun==T)  Q[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co
+        if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co
+        if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
       }
       else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrices"))
+      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
     }
-    if(Qfun==T | fitted==T)  return = list(treatment = treatment, Q=Q, fitted=fitted)
+    if(Qopt==TRUE | Qfit==TRUE)  return = list(treatment = treatment, Q=Q, fitted=fitted)
     else return = list(treatment = treatment)
   }
-  else {  # full information sample
-    if (K==1) {
-      if (!is.list(AA)) AA = list(AA)
-      if (!is.list(RR)) RR = list(RR)
-      if (!is.list(pi)) pi = list(pi)
-    }
+  else {  # with outcome
     n = length(AA[[1]])
     select = rep(1,n)
     prob = rep(1,n)
@@ -394,17 +393,18 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
       if (is.matrix(H)) {
         p = dim(H)[2]
         fit[[i]] = (object[[i]]$co[p+2] + H %*% object[[i]]$co[(p+3):(2*p+2)])
-        if(Qfun==T)  Q[[i]] = cbind(rep(1,n), H, c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
-        if(fitted==T) fitted[[i]] = cbind(rep(1,n), H, c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H) %*% object[[i]]$co 
+        treatment[[i]] = 2*(fit[[i]]>0) - 1
+        if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H, c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
+        if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H, c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H) %*% object[[i]]$co
       } else if (is.list(H)) {
         p = dim(H[[i]])[2]
         fit[[i]] = (object[[i]]$co[p+2] + H[[i]] %*% object[[i]]$co[(p+3):(2*p+2)])
-        if(Qfun==T)  Q[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
-        if(fitted==T) fitted[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
+        treatment[[i]] = 2*(fit[[i]]>0) - 1
+        if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
+        if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
       }
       else stop(gettextf("H must be a vector or matrix, or a list of K vectors or matrice"))
       
-      treatment[[i]] = 2*(fit[[i]]>0) - 1
       if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
       select = select * (treatment[[i]] == AA[[i]])
       prob = prob * pi[[i]]
@@ -412,7 +412,7 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
     }
     valuefun = mean(sumR * select / prob)
     benefitfun = valuefun - mean(sumR*(1-select)/prob)
-    if(Qfun==T | fitted==T) return = list(treatment = treatment, Q=Q, valuefun = valuefun, benefit = benefitfun, pi=pi, fitted=fitted)
+    if(Qopt==TRUE | Qfit==TRUE) return = list(treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi, Q=Q, fitted=fitted)
     else  return = list(treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
@@ -422,7 +422,7 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qfun=F, fitted=F
 
 
 ## handle the NA case (when there is error in the fitted object)
-predict.has_error = function(object, ...) {
+predict.has_error = function(object) {
   list(fit = NA, treatment = NA, valuefun = NA, benefit = NA)
 }
 

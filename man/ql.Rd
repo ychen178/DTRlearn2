@@ -58,9 +58,7 @@ Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
 Maintainer: Yuan Chen <yc3281@columbia.edu>
 }
-\note{
-%%  ~~further notes~~
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

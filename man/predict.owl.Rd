@@ -8,7 +8,7 @@ Predict from a Fitted "owl" Object
 This function serves two purposes from a fitted "owl" object. It can recommend treatments for a new independent sample with partial or full subject features observed up to a certain stage. If subject feautures, treatment assignments and outcomes are fully observed in the new sample, this function can also evaluate the estimated DTR on this new sample, returning the empirical value function and benefit function.
 }
 \usage{
-predict.owl(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
+\method{predict}{owl}(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,11 +23,10 @@ predict.owl(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
   \item{K}{number of stages of \code{H} observed in the new sample}
 
   \item{pi}{treatment assignment probabilities of the observed treatments at the K stages for all subjects in the new sample. It is a vector if \code{K=1}, or a list of \code{K} vectors corresponding to the \code{K} stages. It can be unspecified if one is only interested in treatment recommendations for the new sample. If both \code{AA} and \code{RR} are specified while \code{pi} is not specified, we will estimate the treatment assignment probabilities based on lasso-penalized logistic regressions with predictors being \eqn{H_k} at each stage k. The default is \code{pi=NULL}.}
+  
+  \item{...}{further arguments passed to or from other methods.}
+}
 
-}
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 
 \value{
   \item{fit}{fitted decision functions at the K stages for each subject in the new sample. It is a list of K vectors.}
@@ -42,16 +41,11 @@ predict.owl(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
 
   \item{pi}{treatment assignment probabilities of the assigned treatments at the K stages for each subject in the new sample. If \code{pi} is not specified but \code{H} and \code{AA} are specified for the K stages, the estimated treatment assignment probabilities from lasso-penalized logistic regressions with \eqn{H_k} being the predictors at each stage k will be returned.}
 }
-\references{
-%% ~put references to the literature/web site here ~
-}
+ 
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
 Maintainer: Yuan Chen <yc3281@columbia.edu>
-}
-\note{
-%%  ~~further notes~~
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
@@ -79,7 +73,7 @@ pi_test = list(rep(0.5, n_test), rep(0.5, n_test))
 
 # estimate DTR with owl on the training sample
 owl_train = owl(H=list(H1_train, H2_train), AA=train$A, RR=train$R, n=n_train, K=2,
-    pi=pi_train, loss='hinge', augment=T, m=3)
+    pi=pi_train, loss='hinge', augment=TRUE, m=3)
 
 # evaluate the DTR when full information are observed on the new sample
 owl_test = predict(owl_train, H=list(H1_test, H2_test), AA=test$A, RR=test$R, K=2)

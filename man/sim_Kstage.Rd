@@ -12,7 +12,7 @@ Subjects are from \code{n_cluster} latent groups with equal sizes, and these \co
 }
 
 \usage{
-sim_Kstage = function(n, n_cluster, pinfo, pnoise, centroids=NULL, K)
+sim_Kstage (n, n_cluster, pinfo, pnoise, centroids=NULL, K)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,9 +21,9 @@ sim_Kstage = function(n, n_cluster, pinfo, pnoise, centroids=NULL, K)
   \item{pinfo}{number of informative baseline variables}
   \item{pnoise}{number of non-informative baseline variables}
   \item{centroids}{centroids of the \code{pinfo} variables for the \code{n_cluster} groups. It is a matrix of dimension \code{n_cluster} by \code{pinfo}. It's used as the means of the multivariate Gaussians to generate the \code{pinfo} variables for the \code{n_cluster} groups. For a training set, do not assign centroids, the centroids are generated randomly from N(0,5) by the function. For a test set, one should assign the same set of centroids as the training set.}
+  \item{K}{number of stages.}
 }
-\details{
-}
+
 \value{
   \item{X }{baseline variables. It is a matrix of dimension \code{n} by \code{(pinfo + pnoise)}.}
   \item{A }{treatment assigments for the K-stages. It is a list of K vectors.}
@@ -32,17 +32,13 @@ sim_Kstage = function(n, n_cluster, pinfo, pnoise, centroids=NULL, K)
   \item{centroids }{centroids of the \code{pinfo} variables for the \code{n_cluster} groups. It is a matrix of dimension \code{n_cluster} by \code{pinfo}. }
 
 }
-\references{
-%% ~put references to the literature/web site here ~
-}
+
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
 Maintainer: Yuan Chen <yc3281@columbia.edu>
 }
-\note{
-%%  ~~further notes~~
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

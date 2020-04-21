@@ -22,7 +22,7 @@ owl_logit_single <- function(H,A,R2,pi,pentype='lasso',method='logitlasso', m=4)
   r=r/pi
   Y=A*sign(r)*0.5+0.5
 
-  cvlogit = tryCatch(cv.glmnet(H, Y, family = "binomial", weights=abs(r), nfold=m), error=function(e) e)
+  cvlogit = tryCatch(cv.glmnet(H, Y, family = "binomial", weights=abs(r), nfolds=m), error=function(e) e)
   if("error" %in% class(cvlogit))  {
     has_error = 1
     print(cvlogit)

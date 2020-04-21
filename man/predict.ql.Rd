@@ -8,7 +8,7 @@ Predict from a Fitted "ql" Object
 This function serves two purposes from a fitted "ql" object. It can recommend treatments for a new independent sample with partial or full subject features observed up to a certain stage. If subject features, treatment assignments and outcomes are fully observed in the new sample, this function can also evaluate the fitted DTR on this new sample, returning the empirical value function and benefit function.
 }
 \usage{
-predict.ql(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
+\method{predict}{ql}(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,14 +24,13 @@ predict.ql(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
 
   \item{pi}{treatment assignment probabilities of the observed treatments at the K stages for all subjects in the new sample. It is a vector if \code{K=1}, or a list of \code{K} vectors corresponding to the \code{K} stages. It can be unspecified if one is only interested in treatment recommendations for the new sample. If both \code{AA} and \code{RR} are specified while \code{pi} is not specified, we will estimate the treatment assignment probabilities based on lasso-penalized logistic regressions with predictors being \eqn{H_k} at each stage k. The default is \code{pi=NULL}.}
   
-  \item{Qfun}{whether to output the predicted optimal Q-function. The default is Qfun=FALSE. }
+  \item{Qopt}{whether to output the predicted optimal Q-function. The default is Qfun=FALSE. }
   
-  \item{fitted}{whether to output the estimated Q-function under the observed treatments. The default is fitted=FALSE. }
+  \item{Qfit}{whether to output the estimated Q-function under the observed treatments. The default is fitted=FALSE. }
+  
+  \item{...}{further arguments passed to or from other methods.}
 }
 
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 
 \value{
   \item{treatment}{recommennded optimal treatments at the K stages for each subject in the new sample. It is a list of K vectors. If no tailoring variables are learned in the "ql" object, treatments will be assigned randomly with equal probability.}
@@ -46,17 +45,13 @@ predict.ql(object, H, AA=NULL, RR=NULL, K, pi=NULL,...)
   
   \item{fitted}{the estimated Q-function under the observed treatment if fitted==TRUE.}
 }
-\references{
 
-}
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
 Maintainer: Yuan Chen <yc3281@columbia.edu>
 }
-\note{
-%%  ~~further notes~~
-}
+
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

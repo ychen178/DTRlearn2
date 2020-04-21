@@ -9,13 +9,11 @@ ql_single <- function(H, A, R, pentype='lasso', m=4){
   n = length(A)
   X = cbind(H, A, diag(A)%*%H)
   cvfit = cv.glmnet(X, R, nfolds=m)
-  print(cvfit)
   
   if (pentype=='lasso'){
     co = as.matrix(predict(cvfit, s="lambda.min", type="coeff"))
   } else {
     co = predict(cvfit, s=0, type="coeff")
-    print(co)
   }
   
   XX1 = cbind(rep(1,n), H, rep(1,n), diag(n)%*%H)
@@ -37,8 +35,8 @@ ql_single <- function(H, A, R, pentype='lasso', m=4){
 ### a general K-stage Q-learning
 ql <- function (H, AA, RR, K, pi='estimated', lasso=TRUE, m=4) {
   
-  if(lasso==T) pentype = 'lasso'
-  else if (lasso==F) pentype = 'LSE'
+  if(lasso==TRUE) pentype = 'lasso'
+  else if (lasso==FALSE) pentype = 'LSE'
   else print("lasso should be TRUE or FALSE")
   
   if(pi[[1]][1]=='estimated' & K>1) {

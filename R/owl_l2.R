@@ -23,7 +23,7 @@ owl_l2_single <-function(H, A, R2, pi, pentype='lasso', method='olslasso', m=4) 
   r = r/pi
   Y = A*sign(r)
 
-  model = tryCatch(cv.glmnet(H, Y, weights=abs(r), nfold=m), error=function(e) e)
+  model = tryCatch(cv.glmnet(H, Y, weights=abs(r), nfolds=m), error=function(e) e)
 
   if ("error" %in% class(model)) {
     print(model)
