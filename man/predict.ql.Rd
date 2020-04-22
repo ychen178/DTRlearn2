@@ -41,9 +41,9 @@ This function serves two purposes from a fitted "ql" object. It can recommend tr
 
   \item{pi}{treatment assignment probabilities of the assigned treatments at the K stages for each subject in the new sample. If \code{pi} is not specified but \code{H} and \code{AA} are specified for the K stages, the estimated treatment assignment probabilities from lasso-penalized logistic regressions with \eqn{H_k} being the predictors at each stage k will be returned.}
   
-  \item{Q}{the predicted optimal Q-function if \code{Qfun==TRUE}.}
+  \item{Q}{the predicted optimal Q-function if \code{Qfun=TRUE}.}
   
-  \item{fitted}{the estimated Q-function under the observed treatment if \code{fitted==TRUE}.}
+  \item{fitted}{the estimated Q-function under the observed treatment if \code{fitted=TRUE}.}
 }
 
 \author{
