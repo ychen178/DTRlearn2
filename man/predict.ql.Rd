@@ -24,9 +24,9 @@ This function serves two purposes from a fitted "ql" object. It can recommend tr
 
   \item{pi}{treatment assignment probabilities of the observed treatments at the K stages for all subjects in the new sample. It is a vector if \code{K=1}, or a list of \code{K} vectors corresponding to the \code{K} stages. It can be unspecified if one is only interested in treatment recommendations for the new sample. If both \code{AA} and \code{RR} are specified while \code{pi} is not specified, we will estimate the treatment assignment probabilities based on lasso-penalized logistic regressions with predictors being \eqn{H_k} at each stage k. The default is \code{pi=NULL}.}
   
-  \item{Qopt}{whether to output the predicted optimal Q-function. The default is Qfun=FALSE. }
+  \item{Qopt}{whether to output the predicted optimal Q-function. The default is \code{Qfun=FALSE}. }
   
-  \item{Qfit}{whether to output the estimated Q-function under the observed treatments. The default is fitted=FALSE. }
+  \item{Qfit}{whether to output the estimated Q-function under the observed treatments. The default is \code{fitted=FALSE}. }
   
   \item{...}{further arguments passed to or from other methods.}
 }
