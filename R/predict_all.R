@@ -6,12 +6,12 @@
 
 ###  prediction functions for intermediate steps (private functions)
 
-predict.linearcl<-function(object,x){
+predict.linearcl<-function(object,x, ...){
   predict=sign(object$beta0+x%*%object$beta)
   predict
 }
 
-predict.rbfcl<-function(object,x){
+predict.rbfcl<-function(object,x, ...){
   rbf=rbfdot(sigma=object$sigma)
   n=dim(object$H)[1]
   if (is.matrix(x)) xm=dim(x)[1]
@@ -41,17 +41,17 @@ predict.owl <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   }
   
   res = list()
-  if(object$type == "owl_svmlinear") res = predict.owl_svmlinear(object, H, AA, RR, K, pi)
-  else if(object$type == "owl_svmrbf") res = predict.owl_svmrbf(object, H, AA, RR, K, pi)
-  else if(object$type == "owl_logit") res = predict.owl_logit(object, H, AA, RR, K, pi)
-  else if(object$type == "owl_l2") res = predict.owl_l2(object, H, AA, RR, K, pi)
-  else if(object$type == "has_error") res = predict.has_error(object)
+  if(object$type == "owl_svmlinear") res = predict.owl_svmlinear(object, H, AA, RR, K, pi, ...)
+  else if(object$type == "owl_svmrbf") res = predict.owl_svmrbf(object, H, AA, RR, K, pi, ...)
+  else if(object$type == "owl_logit") res = predict.owl_logit(object, H, AA, RR, K, pi, ...)
+  else if(object$type == "owl_l2") res = predict.owl_l2(object, H, AA, RR, K, pi, ...)
+  else if(object$type == "has_error") res = predict.has_error(object, ...)
   res
 }
 
 
 ###  predict with  hingelinear, aughingelinear object
-predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
+predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   
   if (is.vector(H) & !is.list(H))  H = matrix(H, ncol=1)
   
@@ -113,7 +113,7 @@ predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
 }
 
 ###  predict with  hingerbf, aughingerbf   object
-predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
+predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   
   if (is.vector(H) & !is.list(H))  H = matrix(H, ncol=1)
   fit = list()
@@ -191,7 +191,7 @@ predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
 
 
 ### predict with  logit / logitlasso  object
-predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
+predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   
   if (is.vector(H) & !is.list(H))   H = matrix(H, ncol=1)
   fit = list()
@@ -259,7 +259,7 @@ predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
 
 
 ### predict based on   l2 / l2.lasso  owl() object
-predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
+predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   
   if (is.vector(H) & !is.list(H))   H = matrix(H, ncol=1)
   fit = list()
@@ -325,7 +325,7 @@ predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL) {
 }
 
 ## handle the NA case (when there is error in the fitted object)
-predict.has_error = function(object) {
+predict.has_error = function(object, ...) {
   list(fit = NA, treatment = NA, valuefun = NA, benefit = NA)
 }
 
@@ -416,14 +416,6 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit
     else  return = list(treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
-}
-
-
-
-
-## handle the NA case (when there is error in the fitted object)
-predict.has_error = function(object) {
-  list(fit = NA, treatment = NA, valuefun = NA, benefit = NA)
 }
 
 
