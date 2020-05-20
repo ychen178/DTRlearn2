@@ -11,11 +11,8 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
   n=length(A)
   p=dim(H)[2]
   clinear_input = clinear
-  print(n) #-------------
-  print(clinear)
   clinear = clinear/n
   
-  print(R2)
   if (max(R2)!=min(R2)){
     if (pentype=='lasso'){
       cvfit=cv.glmnet(H,R2,nfolds=m)
@@ -170,10 +167,6 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
   has_error = 0
   
   for (j in K:1) {
-    print(c("stage: ", j))
-    print(c("RR", RR))
-    print(c("R_future", R_future))
-    print(c("RR[[j]]+R_future", RR[[j]]+R_future))
     R = (RR[[j]]+R_future)
     prob = prob*pi[[j]]
     
