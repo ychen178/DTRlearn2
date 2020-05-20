@@ -2,7 +2,7 @@
 \alias{ql}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Q-learning for Estimating DTRs
+Q-learning for Estimating Optimal DTRs
 }
 \description{
 This function implements Q-learning for estimating general K-stage DTRs. Lasso penalty can be applied for variable selection at each stage.
@@ -56,7 +56,7 @@ Qian, M., & Murphy, S. A. (2011). Performance guarantees for individualized trea
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
-Maintainer: Yuan Chen <yc3281@columbia.edu>
+Maintainer: Yuan Chen <yc3281@columbia.edu><irene.yuan.chen@gmail.com>
 }
 
 
@@ -86,10 +86,8 @@ pi_test = list(rep(0.5, n_test), rep(0.5, n_test))
 ql_train = ql(H=list(H1_train, H2_train), AA=train$A, RR=train$R, K=2, pi=pi_train, m=3)
 
 ql_test = predict(ql_train, H=list(H1_test, H2_test), AA=test$A, RR=test$R, K=2, pi=pi_test)
-
-
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{Q-learning}% use one of  RShowDoc("KEYWORDS")
+\keyword{Dynamic treatment regime (DTR)}% __ONLY ONE__ keyword per line

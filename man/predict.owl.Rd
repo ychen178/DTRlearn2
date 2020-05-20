@@ -45,7 +45,7 @@ This function serves two purposes from a fitted "owl" object. It can recommend t
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
-Maintainer: Yuan Chen <yc3281@columbia.edu>
+Maintainer: Yuan Chen <yc3281@columbia.edu><irene.yuan.chen@gmail.com>
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
@@ -88,8 +88,8 @@ owl_test$treatment
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{Outcome-weighted learning}% use one of  RShowDoc("KEYWORDS")
+\keyword{Dynamic treatment regime (DTR)}% __ONLY ONE__ keyword per line
 
 
 

@@ -41,7 +41,7 @@ colnames(H2)[13] = "o22*a1"
 fit_ql = ql(H=list(H1, H2), AA=list(a1,a2), RR=list(rep(0, n), y),
             pi=list(rep(0.5, n), rep(0.5,n)), K=2, m=3, lasso=TRUE)
 
-c = 2^c(-15:15)
+c = 2^c(-3:3)
 fit_owl = owl(H=list(H1, H2), AA=list(a1,a2), RR=list(rep(0, n), y),
               n=n, K=2, pi=list(rep(0.5, n), rep(0.5,n)), res.lasso = TRUE,
               loss="hinge", kernel="linear", augment=TRUE, c=c, m=3)

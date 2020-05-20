@@ -2,7 +2,7 @@
 \alias{owl}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Integrated Outcome-weighted Learning for Estimating DTRs
+Integrated Outcome-weighted Learning for Estimating Optimal DTRs
 }
 \description{
 This function implements a variety of outcome-weighted learning methods for estimating general K-stage DTRs. Different loss functions - SVM hinge loss, SVM ramp loss, binomial deviance loss, and L2 loss - can be adopted to solve the weighted classification problem at each stage. Augmentation in the outcomes is allowed to improve efficiency especially when there are multiple stages with a small sample size. Cross validation is conducted to choose the best tuning parameters if any.
@@ -95,7 +95,7 @@ Zhao, Y. Q., Zeng, D., Laber, E. B., & Kosorok, M. R. (2015). New statistical le
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
-Maintainer: Yuan Chen <yc3281@columbia.edu>
+Maintainer: Yuan Chen <yc3281@columbia.edu><irene.yuan.chen@gmail.com>
 }
 
 
@@ -137,6 +137,6 @@ owl_test$valuefun
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-%\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{Outcome-weighted learning}% use one of  RShowDoc("KEYWORDS")
+\keyword{Dynamic treatment regime (DTR)}% __ONLY ONE__ keyword per line
 

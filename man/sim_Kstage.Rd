@@ -2,7 +2,7 @@
 \alias{sim_Kstage}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Simulate a K-stage SMART data
+Simulate a K-stage Sequential Multiple Assignment Randomized Trial (SMART) data
 }
 \description{
 This function simulates a K-stage SMART data with \code{(pinfo + pnoise)} baseline variables from a multivariate Gaussian distribution. The \code{pinfo} variables have variance 1 and pairwise correlation 0.2; the \code{pnoise} variables have mean 0 and are uncorrelated with each other and with the \code{pinfo} variables.
@@ -36,7 +36,7 @@ sim_Kstage (n, n_cluster, pinfo, pnoise, centroids=NULL, K)
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
-Maintainer: Yuan Chen <yc3281@columbia.edu>
+Maintainer: Yuan Chen <yc3281@columbia.edu><irene.yuan.chen@gmail.com>
 }
 
 
@@ -62,9 +62,8 @@ test = sim_Kstage(n_test, n_cluster, pinfo, pnoise, train$centroids, K=2)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
-
+\keyword{Simulation function}
+\keyword{SMART}
 
 
 

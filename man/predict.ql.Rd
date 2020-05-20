@@ -49,7 +49,7 @@ This function serves two purposes from a fitted "ql" object. It can recommend tr
 \author{
 Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 
-Maintainer: Yuan Chen <yc3281@columbia.edu>
+Maintainer: Yuan Chen <yc3281@columbia.edu><irene.yuan.chen@gmail.com>
 }
 
 
@@ -92,7 +92,7 @@ ql_test2$treatment
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{Q-learning}% use one of  RShowDoc("KEYWORDS")
+\keyword{Dynamic treatment regime (DTR)}% __ONLY ONE__ keyword per line
 
 
