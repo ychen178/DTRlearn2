@@ -364,7 +364,7 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit
         n = dim(H)[1]
         fit[[i]] = (object[[i]]$co[p+2] + H %*% object[[i]]$co[(p+3):(2*p+2)])
         treatment[[i]] = 2*(fit[[i]]>0) - 1
-        if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
+        if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = 2 * rbinom(n, 1, 0.5) - 1 #no tailoring vars, randomize treatments
         if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H, c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H) %*% object[[i]]$co
         if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H, c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H) %*% object[[i]]$co
       }
@@ -373,12 +373,12 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit
         n = dim(H[[i]])[1]
         fit[[i]] = (object[[i]]$co[p+2] + H[[i]] %*% object[[i]]$co[(p+3):(2*p+2)])
         treatment[[i]] = 2*(fit[[i]]>0) - 1
-        if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5)
+        if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = 2 * rbinom(n, 1, 0.5) - 1
         if(Qopt==TRUE)  Q[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(treatment[[i]])), diag(c(as.vector(treatment[[i]]))) %*% H[[i]]) %*% object[[i]]$co
         if(Qfit==TRUE & !is.null(AA)) fitted[[i]] = cbind(rep(1,n), H[[i]], c(as.vector(AA[[i]])), diag(c(as.vector(AA[[i]]))) %*% H[[i]]) %*% object[[i]]$co 
       }
       else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrices"))
-      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
+      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = 2 * rbinom(n, 1, 0.5) - 1 #no tailoring vars, randomize treatments
     }
     if(Qopt==TRUE | Qfit==TRUE)  return = list(treatment = treatment, Q=Q, fitted=fitted)
     else return = list(treatment = treatment)
@@ -405,7 +405,7 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit
       }
       else stop(gettextf("H must be a vector or matrix, or a list of K vectors or matrice"))
       
-      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = rbinom(n, 1, 0.5) #no tailoring vars, randomize treatments
+      if(min(fit[[i]])==max(fit[[i]])) treatment[[i]] = 2 * rbinom(n, 1, 0.5) - 1 #no tailoring vars, randomize treatments
       select = select * (treatment[[i]] == AA[[i]])
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
