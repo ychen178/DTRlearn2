@@ -24,7 +24,7 @@ ql_single <- function(H, A, R, pentype='lasso', m=4){
   
   # no tailoring variables chosen (interaction terms), randomize the recommneded treatment
   treatment = 2 * (Q1 > Q2) - 1
-  if (sum(Q1==Q2)==n)  treatment = rbinom(n, 1, 0.5)
+  if (sum(Q1==Q2)==n)  treatment = 2 * rbinom(n, 1, 0.5) - 1
   
   Qsingle = list(co=co, Q=Q, treatment = treatment)
   class(Qsingle) = 'qsingle'
