@@ -19,12 +19,12 @@ We provide a comprehensive software to estimate general K-stage DTRs from sequen
 
 
 
-### A simple example of a 2-stage SMART: children with ADHD are randomized at each treatemnt decision time point**
+### A simple example of a 2-stage SMART: children with ADHD are randomized at each treatemnt decision time point
 <p align="center">
 <img src="https://github.com/ychen178/DTRlearn2/blob/master/adhd_diagram2.png" width="600">
 </p>
 
-### Statistical learning methods implemented in this pacakge and their performance in learning a 4-stage DTR**
+### Statistical learning methods implemented in this pacakge and their performance in learning a 4-stage DTR
 <p align="center">
 <img src="https://github.com/ychen178/DTRlearn2/blob/master/boxplot2_sim42.png" width="750">
 </p>
