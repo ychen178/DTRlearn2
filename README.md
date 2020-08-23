@@ -12,10 +12,15 @@ We provide a comprehensive software to estimate general K-stage DTRs from SMARTs
   + 3. Department of Biostatistics, University of North Carolina, Chapel Hill, North Carolina**
   + 4. Department of Psychiatry, Columbia University, New York
 
-#### Reference
+### Reference
 Chen, Yuan, Ying Liu, Donglin Zeng, and Yuanjia Wang. "Statistical Learning Methods for Optimizing Dynamic Treatment Regimes in Subgroup Identification." In Design and Analysis of Subgroups with Biopharmaceutical Applications, pp. 271-297. Springer, Cham, 2020.
 
 
+
+**Figure: Statistical learning methods implemented in this pacakge and their performance in learning a 4-stage DTR**
+<p align="center">
+<img src="https://github.com/ychen178/DTRlearn2/blob/master/boxplot2_sim42.png" width="600">
+</p>
 
 
 ### Installation in R
