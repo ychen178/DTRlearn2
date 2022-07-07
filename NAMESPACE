@@ -6,6 +6,7 @@ import(MASS)
 import(glmnet)
 import(Matrix)
 import(foreach)
+import(WeightSVM)
  
 S3method(sim_Kstage, ql, owl)
 S3method(predict, ql)
