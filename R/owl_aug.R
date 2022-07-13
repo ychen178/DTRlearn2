@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------------#
 
 ## Solve single-stage augmented owl
-owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2), sigma=c(0.03,0.05,0.07), s=s, m=4){
+owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2), sigma=c(0.03,0.05,0.07), s=s, m=4, solver='svm'){
 
   if (K==1) stop(gettextf("No augment methods for single stage data. Please specify augment=F when K=1."))
 
@@ -42,27 +42,27 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
 
     if(!is.list(X)) {
       if(method == 'hingelinear')
-        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m)
+        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m,solver=solver)
       if(method == 'hingerbf')
-        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m)
+        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m,solver=solver)
       if(method %in% c('logit','logitlasso'))
         models[[k]] = owl_logit_single(X,A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method %in% c('ols', 'olslasso'))
         models[[k]] = owl_l2_single(X,A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method == 'ramplinear')
-        models[[k]] = owl_ramp_cv(X,A,R,pi[[k]], pentype=pentype, bigC=clinear, bigS=s, K=m)
+        models[[k]] = owl_ramp_cv(X,A,R,pi[[k]], pentype=pentype, bigC=clinear, bigS=s, K=m,solver=solver)
     }
     if (is.list(X)) {
       if(method == 'hingelinear')
-        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m)
+        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m,solver=solver)
       if(method == 'hingerbf')
-        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m)
+        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m,solver=solver)
       if(method %in% c('logit','logitlasso'))
         models[[k]] = owl_logit_single(X[[k]],A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method %in% c('ols', 'olslasso'))
         models[[k]] = owl_l2_single(X[[k]],A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method == 'ramplinear')
-        models[[k]] = owl_ramp_cv(X[[k]],A,R,pi[[k]], pentype=pentype, bigC=clinear, bigS=s, K=m)
+        models[[k]] = owl_ramp_cv(X[[k]],A,R,pi[[k]], pentype=pentype, bigC=clinear, bigS=s, K=m,solver=solver)
     }
 
     if(is.na(max(models[[k]]$treatment))) {

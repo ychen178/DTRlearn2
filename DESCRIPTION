@@ -4,7 +4,7 @@ Version: 2.0
 Author: Yuan Chen, Ying Liu, Donglin Zeng, Yuanjia Wang
 Maintainer: Yuan Chen <irene.yuan.chen@gmail.com>
 Description: We provide a comprehensive software to estimate general K-stage DTRs from SMARTs with Q-learning and a variety of outcome-weighted learning methods. Penalizations are allowed for variable selection and model regularization. With the outcome-weighted learning scheme, different loss functions - SVM hinge loss, SVM ramp loss, binomial deviance loss, and L2 loss - are adopted to solve the weighted classification problem at each stage; augmentation in the outcomes is allowed to improve efficiency. The estimated DTR can be easily applied to a new sample for individualized treatment recommendations or DTR evaluation.
-Depends: kernlab,MASS,Matrix,foreach,glmnet, R (>= 2.10)
+Depends: kernlab,MASS,Matrix,foreach,glmnet,WeightSVM (>= 1.7-11), R (>= 2.10)
 License: GPL-2
 Encoding: UTF-8
 RoxygenNote: 7.1.0

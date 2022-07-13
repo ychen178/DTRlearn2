@@ -1,13 +1,15 @@
 #-----------------------------------------------------------------------------------#
 # private function for solving the weighted svm with quadratic programming
 # Yuan Chen, April 2020
+# Tianchen, July 2022 modified
 #-----------------------------------------------------------------------------------#
 
-wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7) {
+wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver=NULL) {
   
   if (kernel=='linear') {
-    K = X %*% t(X)
-    if (is.vector(X)) K = t(X) %*% X
+    # K = X %*% t(X)
+    # if (is.vector(X)) K = t(X) %*% X
+    K = tcrossprod(X)
   }
   else if (kernel=='rbf'){
     rbf = rbfdot(sigma = sigma)
@@ -20,15 +22,32 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7) {
   
   
   n = length(A)
-  solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
-  # solution_w <- wsvm(X, A * sign(wR), weight = abs(wR), cost=C, kernel = 'linear', 
-                     # type='eps-regression',scale = FALSE, shrinking = FALSE, epsilon = 1e-15, 
-                     # fitted = FALSE)
+  if (solver=='svm'){
+    solution <- wsvm(K, A * sign(wR), weight = abs(wR), cost=C, kernel = 'precomputed',
+                       type='eps-regression', scale = FALSE, shrinking = FALSE, epsilon = 1e-15,
+                       fitted = FALSE)
+  }else{
+    solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
+  }
+  
+  if (length(as.numeric(solution$coefs))<length(A)){
+    solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
+  }
+
   if ("error" %in% class(solution)) {
     return(list(beta0=NA, beta=NA, fit=NA, probability=NA, treatment=NA, sigma=NA, H=NA, alpha1=NA))
   }
-  alpha = primal(solution)
-  alpha1 = alpha * y 
+  
+  if (inherits(solution, 'wsvm')){
+    alpha1 = as.numeric(solution$coefs)
+    alpha = alpha1 / y 
+  }else{
+    alpha = primal(solution)
+    alpha1 = alpha * y 
+  }
+  
+
+  
   
   if (kernel=='linear'){
     w = t(X) %*% alpha1

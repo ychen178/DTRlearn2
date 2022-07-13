@@ -10,7 +10,7 @@ ramp.loss <- function(u,s){
 
 
 ### solve single-stage owl with ramp loss under a given set of c and s
-owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso', iter.Max=20, beta.init=NULL, tol=1e-5, C=0.1, s=0.1) {
+owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso', iter.Max=20, beta.init=NULL, tol=1e-5, C=0.1, s=0.1, solver='svm') {
 
   n = length(A)
   if (max(R) != min(R)) {
@@ -36,7 +36,7 @@ owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso
 
   # initial values of beta from owl under hinge loss
   if(is.null(beta.init)){
-    fit_temp <- owl_single(X, A, R, pi, kernel="linear")
+    fit_temp <- owl_single(X, A, R, pi, kernel="linear", solver=solver)
     beta.init <- c(fit_temp$beta0, fit_temp$beta)
   }
 
@@ -108,7 +108,7 @@ owl_ramp_notune = function (X, A, R, pi, newX, newA, newR, newpi, pentype='lasso
 
 
 ## Solve single-stage owl with ramp loss and CV to choose tuning parameters c and s
-owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max=20, tol=1e-5, beta.init=NULL) {
+owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max=20, tol=1e-5, beta.init=NULL, solver='svm') {
 
   n = length(A)
   bigC_input = bigC
@@ -136,7 +136,7 @@ owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max
 
   for(i in 1:length(bigC)){
     if(is.null(beta.init)){
-      fit_temp <- owl_single(X, A, Y, PrTx, kernel = "linear")
+      fit_temp <- owl_single(X, A, Y, PrTx, kernel = "linear", solver=solver)
       beta.init = c(fit_temp$beta0, fit_temp$beta)
       if (is.na(max(beta.init)))  {
         beta.init = rnorm(dim(X)[2]+1, 0, 1)
@@ -147,7 +147,7 @@ owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max
       for (t in 1:K) {
         Ytrain <- Y[folds!=t]; Xtrain <- X[folds!=t,]; Atrain <- A[folds!=t]; PTtrain <- PrTx[folds!=t];
         Ytest <- Y[folds==t]; Xtest <- X[folds==t,];  Atest <- A[folds==t]; PTtest <- PrTx[folds==t];
-        temp = owl_ramp_notune(Xtrain, Atrain, Ytrain, PTtrain, Xtest, Atest, Ytest, PTtest, pentype=pentype, C=bigC[i], s=bigS[j], beta.init = beta.init, tol=tol)
+        temp = owl_ramp_notune(Xtrain, Atrain, Ytrain, PTtrain, Xtest, Atest, Ytest, PTtest, pentype=pentype, C=bigC[i], s=bigS[j], beta.init = beta.init, tol=tol, solver=solver)
         predV[t] <- sum(Ytest*(Atest==temp$treatment)/PTtest)
       }
       if (!is.na(sum(predV)) & sum(predV)>Vtemp*length(A)) {
@@ -157,7 +157,7 @@ owl_ramp_cv  <- function(X, A, Y, PrTx, pentype=pentype, bigC, bigS, K, iter.Max
     }
   }
   if( !is.na(OC) & !is.na(OS) ) {
-    model = owl_ramp_notune(X, A, Y, PrTx, X, A, Y, PrTx, pentype=pentype, iter.Max=iter.Max, beta.init=beta.init, tol=tol, C=bigC[OC], s=bigS[OS])
+    model = owl_ramp_notune(X, A, Y, PrTx, X, A, Y, PrTx, pentype=pentype, iter.Max=iter.Max, beta.init=beta.init, tol=tol, C=bigC[OC], s=bigS[OS], solver=solver)
     result = c(model, c=bigC_input[OC], s=bigS[OS])
   }
   else result = list(beta0=NA, beta=NA, fit=NA, probability=NA, treatment=NA, valuefun=NA, benefit=NA, c=NA, s=NA, iter=NA)
