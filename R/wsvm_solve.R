@@ -26,13 +26,15 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
     solution <- wsvm(K, A * sign(wR), weight = abs(wR), cost=C, kernel = 'precomputed',
                        type='eps-regression', scale = FALSE, shrinking = FALSE, epsilon = 1e-15,
                        fitted = FALSE)
+    
+    # if error from wsvm, run ipop method
+    if (length(as.numeric(solution$coefs))<length(A)){
+      solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
+    }
   }else{
     solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
   }
   
-  # if (length(as.numeric(solution$coefs))<length(A)){
-  #   solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
-  # }
 
   if ("error" %in% class(solution)) {
     return(list(beta0=NA, beta=NA, fit=NA, probability=NA, treatment=NA, sigma=NA, H=NA, alpha1=NA))

@@ -42,7 +42,7 @@ augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4, solver='sv
 
   \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=4}.}
   
-  \item{solver}{\code{solver='svm'} uses the \code{\link[WeightSVM]{wsvm}} function in \pkg{WeightSVM} to solve. Any other values will make \code{\link[kernlab]{ipop}} in \pkg{kernlab} as the solver.}
+  \item{solver}{\code{solver='svm'} uses the \code{\link[WeightSVM]{wsvm}} function in \pkg{WeightSVM} to solve when \code{loss="hinge"}. Any other values will make \code{\link[kernlab]{ipop}} in \pkg{kernlab} as the solver.}
 
 }
 
