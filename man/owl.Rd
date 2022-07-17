@@ -9,7 +9,7 @@ This function implements a variety of outcome-weighted learning methods for esti
 }
 \usage{
 owl(H, AA, RR, n, K, pi='estimated', res.lasso=TRUE, loss='hinge', kernel='linear',
-augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
+augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4, solver='svm')
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -41,6 +41,8 @@ augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4)
   The default is \code{c=2^(-2:2)}. In practice, a wider range of \code{s} can be specified based on the data. }
 
   \item{m}{number of folds in the m-fold cross validation for choosing the tuning parameters \code{c}, \code{sigma} or \code{s}. It is also used for choosing the tuning parameter of the lasso penalty when \code{res.lasso=T}, \code{loss="logit.lasso"} or \code{loss="l2.lasso"} is specified. The default is \code{m=4}.}
+  
+  \item{solver}{\code{solver='svm'} uses the \code{\link[WeightSVM]{wsvm}} function in \pkg{WeightSVM} to solve. Any other values will make \code{\link[kernlab]{ipop}} in \pkg{kernlab} as the solver.}
 
 }
 

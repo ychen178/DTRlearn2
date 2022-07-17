@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------------#
 
 ## solve single stage outcome-weighted learning
-owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.03,0.05,0.07), clinear=2.^(-2:2), m=3, e=1e-5)  {
+owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.03,0.05,0.07), clinear=2.^(-2:2), m=3, e=1e-5, solver='svm')  {
   
   npar=length(clinear)
   n=length(A)
@@ -53,7 +53,7 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
       R_true_t = R2[!this]
       pt=pi[!this]
       for (j in 1:npar) {
-        model = wsvm_solve(X, Y, R, C=clinear[j], e=e)
+        model = wsvm_solve(X, Y, R, C=clinear[j], e=e, solver=solver)
         if (! is.na(max(model$alpha1)) ) {
           YP = predict(model, Xt)
           V[i,j] = sum(R_true_t*(YP==Yt)/pt)
@@ -66,7 +66,7 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
     else {
       best=which.max(mimi)
       cbest=clinear[best]
-      model=wsvm_solve(H,A,r,C=cbest,e=e)
+      model=wsvm_solve(H,A,r,C=cbest,e=e,solver=solver)
       result = c(model, c=clinear_input[best])
     }
   }
@@ -86,7 +86,7 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
       pt=pi[!this]
       for (j in 1:npar){
         for (s in 1:nsig){
-          model=wsvm_solve(X,Y,R,'rbf',sigma=sigma[s],C=clinear[j],e=e)
+          model=wsvm_solve(X,Y,R,'rbf',sigma=sigma[s],C=clinear[j],e=e,solver=solver)
           if (! is.na(max(model$alpha1)) ) {
             YP=predict(model,Xt)
             V[j,s,i]=sum(R_true_t*(YP==Yt)/pt)
@@ -101,7 +101,7 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
       best=which(mimi==max(mimi, na.rm=T),arr.ind=TRUE)
       bestC=clinear[best[1,1]]
       bestSig=sigma[best[1,2]]
-      model = wsvm_solve(H,A,r,'rbf', bestSig, C=bestC, e=e)
+      model = wsvm_solve(H,A,r,'rbf', bestSig, C=bestC, e=e, solver=solver)
       result = c(model, c=clinear_input[best[1,1]], sigma=bestSig)
     }
   }
@@ -111,7 +111,7 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
 
 
 ## a general K-stage outcome-weighted learning (changed default to augment=FALSE)
-owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel='linear', augment=FALSE, c=2.^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4) {
+owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel='linear', augment=FALSE, c=2.^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4, solver='svm') {
   
   if(res.lasso==TRUE) pentype = 'lasso'
   else if (res.lasso==F) pentype = 'LSE'
@@ -172,9 +172,9 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
     
     if (!is.list(H)) {
       if (method=='hingelinear'){
-        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m)
+        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m,solver=solver)
       } else if (method=='hingerbf'){
-        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m)
+        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m,solver=solver)
       } else if (method=='logitlasso'){
         results[[j]]=owl_logit_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype, method=method, m=m)
       } else if (method=='logit') {
@@ -187,9 +187,9 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
     }
     if (is.list(H)) {
       if (method=='hingelinear'){
-        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m)
+        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m,solver=solver)
       } else if (method=='hingerbf'){
-        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m)
+        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m,solver=solver)
       } else if (method=='logitlasso'){
         results[[j]]=owl_logit_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype, method=method)
       } else if (method=='logit') {
