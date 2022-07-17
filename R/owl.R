@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------#
 # functions for the single-stage (private) and general K-stage outcome-weighted learning
-# Yuan Chen, April 2020
+# Yuan Chen
 #-----------------------------------------------------------------------------------#
 
 ## solve single stage outcome-weighted learning

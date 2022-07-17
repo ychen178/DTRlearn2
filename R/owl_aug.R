@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------#
 # single-stage augmented outcome-weighted learning (private function)
-# Yuan Chen, June 2018
+# Yuan Chen
 #-----------------------------------------------------------------------------------#
 
 ## Solve single-stage augmented owl

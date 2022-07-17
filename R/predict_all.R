@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------#
 # All prediction functions
-# Yuan Chen, April 2020
+# Yuan Chen
 #-----------------------------------------------------------------------------------#
 
 ###  prediction functions for intermediate steps (private functions)
@@ -105,8 +105,8 @@ predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) 
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
     }
-    valuefun = sum(sumR * select / prob) / n
-    benefitfun = valuefun - sum(sumR*(1-select)/prob)/n
+    valuefun = sum(sumR * select / prob) / sum(select / prob) # sum(sumR * select / prob) / n
+    benefitfun = valuefun - sum(sumR*(1-select)/prob) / sum((1-select)/prob) # valuefun - sum(sumR*(1-select)/prob)/n
     return = list(fit = fit, treatment = treatment, probability=predprob, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
@@ -181,8 +181,8 @@ predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
     }
-    valuefun = sum(sumR * select / prob) / n
-    benefitfun = valuefun - sum(sumR*(1-select)/prob)/n
+    valuefun = sum(sumR * select / prob) / sum(select / prob)
+    benefitfun = valuefun - sum(sumR*(1-select)/prob) / sum((1-select)/prob)
     return = list(fit = fit, treatment = treatment, probability=predprob, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
@@ -250,8 +250,8 @@ predict.owl_logit <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
     }
-    valuefun = sum(sumR * select / prob, na.rm = T) / sum(!is.na(sumR * select)) 
-    benefitfun = valuefun - sum(sumR*(1-select)/prob, na.rm = T) / sum(!is.na(sumR * select)) 
+    valuefun = sum(sumR * select / prob, na.rm = T) / sum(select / prob, na.rm = T) 
+    benefitfun = valuefun - sum(sumR*(1-select)/prob, na.rm = T) / sum(select / prob, na.rm = T) 
     return = list(fit = xbeta, probability =predprob, treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
@@ -317,8 +317,8 @@ predict.owl_l2 <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
     }
-    valuefun = sum(sumR * select / prob) / n
-    benefitfun = valuefun - sum(sumR*(1-select)/prob)/n
+    valuefun = sum(sumR * select / prob) / sum(select / prob)
+    benefitfun = valuefun - sum(sumR*(1-select)/prob) / sum((1-select) / prob)
     return = list(fit = fit, probability=predprob, treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }
   return
@@ -410,8 +410,8 @@ predict.ql <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, Qopt=FALSE, Qfit
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]
     }
-    valuefun = mean(sumR * select / prob)
-    benefitfun = valuefun - mean(sumR*(1-select)/prob)
+    valuefun = sum(sumR * select / prob) / sum(select / prob)
+    benefitfun = valuefun - sum(sumR*(1-select)/prob) / sum((1-select) / prob)
     if(Qopt==TRUE | Qfit==TRUE) return = list(treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi, Q=Q, fitted=fitted)
     else  return = list(treatment = treatment, valuefun = valuefun, benefit = benefitfun, pi=pi)
   }

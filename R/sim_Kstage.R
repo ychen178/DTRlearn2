@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------#
 # Simulate a K-stage SMART data with n_cluster clusters characterized by the differential means in the pinfo variables
-# Yuan Chen, June 2018
+# Yuan Chen 
 #-----------------------------------------------------------------------------------#
 
 
