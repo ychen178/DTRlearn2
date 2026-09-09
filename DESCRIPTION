@@ -1,7 +1,7 @@
 Package: DTRlearn2
 Title: Statistical Learning Methods for Optimizing Dynamic Treatment Regimes
 Version: 2.1
-Author@R: c(
+Authors@R: c(
     person("Yuan", "Chen", email= "irene.yuan.chen@gmail.com", role=c("aut", "cre")),
     person("Ying", "Liu", role=c("aut")),
     person("Tianchen", "Xu", role = c("ctb"), comment=c(ORCID="0000-0002-0102-7630")),
