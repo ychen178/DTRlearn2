@@ -48,6 +48,19 @@ augment=FALSE, c=2^(-2:2), sigma=c(0.03,0.05,0.07), s=2.^(-2:2), m=4, solver='sv
 
 
 \details{
+For SVM hinge loss, tuning is conducted stage by stage backwards. Within each fold,
+histories are restandardized using training means and standard deviations, with
+the same transformation applied to validation histories. All
+residual regressions, Q regressions, future-stage policies and, when requested,
+treatment assignment probabilities are fitted using training observations only.
+Validation outcomes are scored using those fitted models. Already selected
+future-stage tuning parameters are held fixed when tuning an earlier stage;
+this is stage-wise cross validation rather than nested selection of the entire
+regime. Final models are refitted on the full supplied sample. The candidate
+grids and the unresidualized inverse-probability-weighted validation criterion
+are unchanged. History construction and any preprocessing performed before
+calling this function remain the caller's responsibility.
+
 A patient's history information prior to the treatment at stage k can be constructed recursively as \eqn{H_k = (H_{k-1},  A_{k-1}, R_{k-1}, X_k)} with \eqn{H_1=X_1}, where \eqn{X_k} is subject-specific variables collected at stage k just prior to the treatment, \eqn{A_k} is the treatment at stage \eqn{k}, and \eqn{R_k} is the outcome observed post the treatment at stage \eqn{k}. Higher order or interaction terms can also be easily incorporated in \eqn{H_k}, e.g., \eqn{H_k = (H_{k-1}, A_{k-1}, R_{k-1}, X_k, H_{k-1}A_{k-1}, R_{k-1}A_{k-1},  X_kA_{k-1})}.
 }
 
