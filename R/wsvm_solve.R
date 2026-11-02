@@ -18,8 +18,6 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
   }
   
   y = A * sign(wR)
-  H = y %*% t(y) * K
-  H = H + 1e-8 * diag(NCOL(K))
   
   
   n = length(A)
@@ -28,6 +26,8 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
                      type='C-classification', scale = FALSE, shrinking = FALSE, fitted = FALSE)
     # if error from wsvm, run ipop method, please change solve manually
   }else{
+    H = y %*% t(y) * K
+    H = H + 1e-8 * diag(NCOL(K))
     solution <- tryCatch(ipop(c = rep(-1, n), H = H, A = t(y), b = 0, l = numeric(n), u = C*abs(wR), r = 0), error=function(er) er)
   }
   
