@@ -38,8 +38,10 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
   }
   
   if (inherits(solution, 'wsvm')){
+    # WeightSVM encodes scores relative to its first internal class label.
+    orientation <- as.numeric(solution$levels[solution$labels[1L]])
     alpha1 <- numeric(n)
-    alpha1[solution$index] <- as.numeric(solution$coefs)
+    alpha1[solution$index] <- orientation * as.numeric(solution$coefs)
     alpha = alpha1 / y 
   }else{
     alpha = primal(solution)
@@ -53,18 +55,22 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
   } else if (kernel=='rbf'){
     fitted = K %*% alpha1
   }
-  rm = y - fitted
-  upper <- C * abs(wR)
-  Imid <- (alpha < upper - e) & (alpha > e)
-  rmid = rm[Imid==1]
-  if (sum(Imid)>0){
-    bias = mean(rmid)
+  if (inherits(solution, 'wsvm')){
+    bias = -orientation * as.numeric(solution$rho)
   } else {
-    Iup = ((alpha<e)&(A==-sign(wR)))|((alpha>upper-e)&(A==sign(wR)))
-    Ilow = ((alpha<e)&(A==sign(wR)))|((alpha>upper-e)&(A==-sign(wR)))
-    rup = rm[Iup]
-    rlow = rm[Ilow]
-    bias = (min(rup)+max(rlow))/2
+    rm = y - fitted
+    upper <- C * abs(wR)
+    Imid <- (alpha < upper - e) & (alpha > e)
+    rmid = rm[Imid==1]
+    if (sum(Imid)>0){
+      bias = mean(rmid)
+    } else {
+      Iup = ((alpha<e)&(A==-sign(wR)))|((alpha>upper-e)&(A==sign(wR)))
+      Ilow = ((alpha<e)&(A==sign(wR)))|((alpha>upper-e)&(A==-sign(wR)))
+      rup = rm[Iup]
+      rlow = rm[Ilow]
+      bias = (min(rup)+max(rlow))/2
+    }
   }
   fit = bias + fitted
   prob = exp(fit) / (1+ exp(fit))
@@ -76,6 +82,10 @@ wsvm_solve <-function(X, A, wR, kernel='linear', sigma=0.05, C=1, e=1e-7, solver
   } else if (kernel=='rbf') {
     model = list(beta0=bias, fit=fit, probability=prob, treatment=2*(fit>0)-1, sigma=sigma, H=X, alpha1=alpha1)
     class(model) = 'rbfcl'
+  }
+  if (inherits(solution, 'wsvm')){
+    model$svm_orientation = orientation
+    model$treatment = svm_treatment(fit, orientation)
   }
   return (model)
 }
