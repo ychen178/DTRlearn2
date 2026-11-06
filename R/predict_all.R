@@ -6,21 +6,23 @@
 
 ###  prediction functions for intermediate steps (private functions)
 
+# At an exact zero, WeightSVM chooses its second internal class label.
+svm_treatment <- function(score, orientation=NULL){
+  if (is.null(orientation)) return(sign(score))
+  ifelse(score>0, 1, ifelse(score<0, -1, -orientation))
+}
+
 predict.linearcl<-function(object,x, ...){
-  predict=sign(object$beta0+x%*%object$beta)
+  predict=svm_treatment(object$beta0+x%*%object$beta, object$svm_orientation)
   predict
 }
 
 predict.rbfcl<-function(object,x, ...){
   rbf=rbfdot(sigma=object$sigma)
-  n=dim(object$H)[1]
-  if (is.matrix(x)) xm=dim(x)[1]
-  else if (is.vector(x) & !is.list(x)) xm=1
-  else stop('x must be vector or matrix')
-  if (xm==1){ K <- apply(object$H,1,rbf,y=x)
-  }else{   K<- matrix(0, xm, n)
-  for (i in 1:xm) {K[i,]=apply(object$H,1,rbf,y=x[i,]) }}
-  predict=sign(object$beta0+K%*%object$alpha1)
+  if (is.vector(x) & !is.list(x)) x=matrix(x,nrow=1)
+  if (!is.matrix(x)) stop('x must be vector or matrix')
+  K=kernelMatrix(rbf,x,object$H)
+  predict=svm_treatment(object$beta0+K%*%object$alpha1, object$svm_orientation)
   predict
 }
 
@@ -66,7 +68,7 @@ predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) 
       else if (is.list(H))
         fit[[i]] = object[[i]]$beta0 + H[[i]] %*% object[[i]]$beta
       else stop(gettextf("H must be a vector or matrix, or a list of K vectors or matrice"))
-      treatment[[i]] = sign(fit[[i]])
+      treatment[[i]] = svm_treatment(fit[[i]], object[[i]]$svm_orientation)
       predprob[[i]] = exp(fit[[i]]) / (1+ exp(fit[[i]]))
     }
     return = list(fit = fit, probability=predprob, treatment = treatment)
@@ -99,7 +101,7 @@ predict.owl_svmlinear <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) 
         fit[[i]] = object[[i]]$beta0 + H[[i]] %*% object[[i]]$beta
       else stop(gettextf("H must be a vector or matrix, or a list of K vectors or matrice"))
       
-      treatment[[i]] = sign(fit[[i]])
+      treatment[[i]] = svm_treatment(fit[[i]], object[[i]]$svm_orientation)
       predprob[[i]] = exp(fit[[i]]) / (1+ exp(fit[[i]]))
       select = select * (treatment[[i]] == AA[[i]])
       prob = prob * pi[[i]]
@@ -123,21 +125,12 @@ predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
   if (is.null(AA) | is.null(RR)) {
     for(i in 1:K) {
       rbf = rbfdot(sigma = object[[i]]$sigma)
-      nsv = dim(object[[i]]$H)[1]
-      if (is.matrix(H))   n = dim(H)[1]
-      else if (is.list(H))   n = dim(H[[i]])[1]
+      if (is.matrix(H))   kern = kernelMatrix(rbf,H,object[[i]]$H)
+      else if (is.list(H))   kern = kernelMatrix(rbf,H[[i]],object[[i]]$H)
       else stop(gettextf("H must be a vector or matrix, or a list of K vectors or matrice"))
-      
-      kern = matrix(0, n, nsv)
-      for (j in 1 : n) {
-        if (is.matrix(H))
-          kern[j,] = apply(object[[i]]$H, 1, rbf, y=H[j,])
-        else if (is.list(H))
-          kern[j,] = apply(object[[i]]$H, 1, rbf, y=H[[i]][j,])
-      }
       fit[[i]] = object[[i]]$beta0 + kern %*% object[[i]]$alpha1
       predprob[[i]] = exp(fit[[i]]) / (1+ exp(fit[[i]]))
-      treatment[[i]] = sign(fit[[i]])
+      treatment[[i]] = svm_treatment(fit[[i]], object[[i]]$svm_orientation)
     }
     return = list(fit = fit, probability=predprob, treatment = treatment)
   }
@@ -164,19 +157,12 @@ predict.owl_svmrbf <- function(object, H, AA=NULL, RR=NULL, K, pi=NULL, ...) {
     
     for(i in 1:K) {
       rbf = rbfdot(sigma = object[[i]]$sigma)
-      if(is.matrix(object[[i]]$H))  nsv = dim(object[[i]]$H)[1]
-      if(is.vector(object[[i]]$H))  nsv = length(object[[i]]$H)
-      kern = matrix(0, n, nsv)
-      for (j in 1 : n) {
-        if (is.matrix(H))
-          kern[j,] = apply(object[[i]]$H, 1, rbf, y=H[j,])
-        else if (is.list(H))
-          kern[j,] = apply(object[[i]]$H, 1, rbf, y=H[[i]][j,])
-        else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrice"))
-      }
+      if (is.matrix(H)) kern = kernelMatrix(rbf,H,object[[i]]$H)
+      else if (is.list(H)) kern = kernelMatrix(rbf,H[[i]],object[[i]]$H)
+      else stop(gettextf("H must be a vector or matrix, or a list of vectors or matrice"))
       fit[[i]] = object[[i]]$beta0 + kern %*% object[[i]]$alpha1
       predprob[[i]] = exp(fit[[i]]) / (1+exp(fit[[i]]))
-      treatment[[i]] = sign(fit[[i]])
+      treatment[[i]] = svm_treatment(fit[[i]], object[[i]]$svm_orientation)
       select = select * (treatment[[i]] == AA[[i]])
       prob = prob * pi[[i]]
       sumR = sumR + RR[[i]]

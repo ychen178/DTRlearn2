@@ -5,7 +5,8 @@
 #-----------------------------------------------------------------------------------#
 
 ## Solve single-stage augmented owl
-owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2), sigma=c(0.03,0.05,0.07), s=s, m=4, solver='svm'){
+owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2), sigma=c(0.03,0.05,0.07), s=s, m=4, solver='svm',
+                  estimate_pi=FALSE, cv=NULL){
 
   if (K==1) stop(gettextf("No augment methods for single stage data. Please specify augment=F when K=1."))
 
@@ -14,6 +15,7 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
   M=matrix(1,n,K)
   C=matrix(1,n,K)
   models=list()
+  qmodels=list()
   prob=matrix(1,n,K)
   QLproj=matrix(0,n,K+1)
   Qspecify=matrix(0,n,K)
@@ -24,14 +26,27 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
   for (k in K:1) {
     A=AA[[k]]
 
-    if (min(RR[[k]]+QR_future) != max(RR[[k]]+QR_future)) {
+    if (!is.null(cv$fitted)) {
+      qmodel = cv$fitted$qmodels[[k]]
+      if (is.null(qmodel$co)) {
+        QR_future = qmodel$QR_future
+        QL[,k] = qmodel$QL
+      } else {
+        Hk = if (is.list(X)) X[[k]] else X
+        QR_future = as.numeric(pmax(cbind(1,Hk,1,Hk) %*% qmodel$co,
+          cbind(1,Hk,-1,-Hk) %*% qmodel$co))
+        QL[,k] = QR_future
+      }
+    } else if (min(RR[[k]]+QR_future) != max(RR[[k]]+QR_future)) {
       if(!is.list(X))  output_Q = ql_single(X,A,RR[[k]]+QR_future,pentype=pentype,m=m)
       if(is.list(X))   output_Q = ql_single(X[[k]],A,RR[[k]]+QR_future,pentype=pentype,m=m)
       QR_future = output_Q$Q
       QL[,k] = output_Q$Q
+      qmodels[[k]] = list(co=output_Q$co)
     } else {
       QR_future = max(RR[[k]] + QR_future)
       QL[,k] = max(RR[[k]] + QR_future)
+      qmodels[[k]] = list(QR_future=QR_future, QL=QL[1,k])
     }
     if(k==K)  R_p = Rsum*select/prob[,K]
     else if (k==K-1)  R_p = Rsum*select/prob[,K] + QLproj[,(k+1):K] * Qspecify[,(k+1):K]
@@ -39,12 +54,30 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
 
     R=(RR[[k]]+R_p)
     prob[,k:K] = prob[,k:K] * as.vector(pi[[k]])
+    if (method %in% c('hingelinear','hingerbf')) {
+      Hk = if (is.list(X)) X[[k]] else X
+      if (!is.null(cv) && k==cv$target)
+        return(list(H=Hk, A=A, R2=as.numeric(R), pi=pi[[k]], models=models, qmodels=qmodels))
+      if (!is.null(cv$fitted)) {
+        models[[k]] = cv$fitted$models[[k]]
+        predict_stage = if (method=='hingelinear') predict.linearcl else predict.rbfcl
+        models[[k]]$treatment = predict_stage(models[[k]], if (nrow(Hk)==1) as.numeric(Hk) else Hk)
+      } else {
+        cv.data = if (is.null(cv)) owl_cv_data(X, AA, RR, pi, n, K, k, method, pentype,
+          clinear, sigma, s, m, solver, models, TRUE, estimate_pi) else NULL
+        stage_c = if (is.null(cv)) clinear else cv$tuned[[k]]$c
+        stage_sigma = if (is.null(cv)) sigma else cv$tuned[[k]]$sigma
+        stage_n = if (is.null(cv)) n else length(cv$tuned[[k]]$fit)
+      }
+    }
 
-    if(!is.list(X)) {
+    if(!is.list(X) && is.null(cv$fitted)) {
       if(method == 'hingelinear')
-        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m,solver=solver)
+        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       if(method == 'hingerbf')
-        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m,solver=solver)
+        models[[k]] = owl_single(X,A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=stage_sigma,clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       if(method %in% c('logit','logitlasso'))
         models[[k]] = owl_logit_single(X,A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method %in% c('ols', 'olslasso'))
@@ -52,11 +85,13 @@ owl_aug <-function(X, AA, RR, n, K, pi, method, pentype='lasso', clinear=2^(-2:2
       if (method == 'ramplinear')
         models[[k]] = owl_ramp_cv(X,A,R,pi[[k]], pentype=pentype, bigC=clinear, bigS=s, K=m,solver=solver)
     }
-    if (is.list(X)) {
+    if (is.list(X) && is.null(cv$fitted)) {
       if(method == 'hingelinear')
-        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=clinear,m=m,solver=solver)
+        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='linear',clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       if(method == 'hingerbf')
-        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=sigma,clinear=clinear,m=m,solver=solver)
+        models[[k]] = owl_single(X[[k]],A,R,pi[[k]], pentype=pentype, kernel='rbf',sigma=stage_sigma,clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       if(method %in% c('logit','logitlasso'))
         models[[k]] = owl_logit_single(X[[k]],A,R,pi[[k]], pentype=pentype, method=method, m=m)
       if (method %in% c('ols', 'olslasso'))

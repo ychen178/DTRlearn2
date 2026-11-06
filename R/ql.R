@@ -7,7 +7,7 @@
 ## solve a single-stage Q-learning
 ql_single <- function(H, A, R, pentype='lasso', m=4){
   n = length(A)
-  X = cbind(H, A, diag(A)%*%H)
+  X = cbind(H, A, H*A)
   cvfit = cv.glmnet(X, R, nfolds=m)
   
   if (pentype=='lasso'){
@@ -16,8 +16,8 @@ ql_single <- function(H, A, R, pentype='lasso', m=4){
     co = predict(cvfit, s=0, type="coeff")
   }
   
-  XX1 = cbind(rep(1,n), H, rep(1,n), diag(n)%*%H)
-  XX2 = cbind(rep(1,n), H, rep(-1,n),-diag(n)%*%H)
+  XX1 = cbind(rep(1,n), H, rep(1,n), H)
+  XX2 = cbind(rep(1,n), H, rep(-1,n),-H)
   Q1 = XX1 %*% co
   Q2 = XX2 %*% co
   Q = apply(cbind(Q1, Q2), 1, max)

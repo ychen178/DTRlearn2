@@ -5,57 +5,47 @@
 #-----------------------------------------------------------------------------------#
 
 ## solve single stage outcome-weighted learning
-owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.03,0.05,0.07), clinear=2.^(-2:2), m=3, e=1e-5, solver='svm')  {
+owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.03,0.05,0.07), clinear=2.^(-2:2), m=3, e=1e-5, solver='svm',
+                      cv.data=NULL, tune=TRUE, n_total=length(A))  {
   
   npar=length(clinear)
   n=length(A)
   p=dim(H)[2]
   clinear_input = clinear
-  clinear = clinear/n
+  clinear = clinear/n_total
   
-  if (max(R2)!=min(R2)){
-    if (pentype=='lasso'){
-      cvfit=cv.glmnet(H,R2,nfolds=m)
-      co=as.matrix(predict(cvfit,s="lambda.min",type="coeff"))
-    }
-    if (pentype=='LSE')  co=coef(lm(R2~H))
-    r=R2-cbind(rep(1,n),H)%*%co
-  } else r=R2
-  r=r/pi
-  
-  # create CV training and test set
-  rand = sample(m,n,replace=T)
-  rand_n = 1
-  while (rand_n < 10) {
-    folds_nobs = rep(0, m)
-    for (t in 1:m)  folds_nobs[t] = sum(rand==t)
-    folds_nobs = sort(folds_nobs)
-    
-    if(folds_nobs[1]< 2 | sum(folds_nobs[1:(m-1)]< 3))   rand = sample(1:m, n, replace=T)
-    else  break
-    rand_n = rand_n + 1
+  r = owl_residual(H, R2, pi, pentype, m)
+  if (!tune) {
+    model = wsvm_solve(H, A, r, kernel=kernel, sigma=sigma[1], C=clinear[1], e=e, solver=solver)
+    if (kernel=='linear') return(c(model, c=clinear_input[1]))
+    return(c(model, c=clinear_input[1], sigma=sigma[1]))
   }
-  if (rand_n == 10) {
-    print("Too few observations in the training or test set for cross validation. Please increase sample size.")
-    return(list(beta0=NA, beta=NA, fit=NA, probability=NA, treatment=NA, c=NA, sigma=NA, H=NA, alpha1=NA))
+
+  if (is.null(cv.data)) {
+    rand = owl_folds(n,m)
+    cv.data = lapply(1:m, function(i) {
+      this = rand!=i
+      scaled = owl_scale_fold(H[this,,drop=FALSE], H[!this,,drop=FALSE])
+      list(X=scaled$H, Y=A[this],
+        R=owl_residual(scaled$H, R2[this], pi[this], pentype, m),
+        Xt=scaled$Ht, Yt=A[!this], R_true_t=R2[!this], pt=pi[!this])
+    })
   }
   
   if (kernel=='linear'){
     V=matrix(NA,m,npar)
     for (i in 1:m) {
-      this=(rand!=i)
-      X=H[this,]
-      Y=A[this]
-      R=r[this]
-      Xt=H[!this,]
-      Yt=A[!this]
-      Rt=r[!this]
-      R_true_t = R2[!this]
-      pt=pi[!this]
+      X=cv.data[[i]]$X
+      Y=cv.data[[i]]$Y
+      R=cv.data[[i]]$R
+      Xt=cv.data[[i]]$Xt
+      Yt=cv.data[[i]]$Yt
+      R_true_t=cv.data[[i]]$R_true_t
+      pt=cv.data[[i]]$pt
       for (j in 1:npar) {
         model = wsvm_solve(X, Y, R, C=clinear[j], e=e, solver=solver)
         if (! is.na(max(model$alpha1)) ) {
-          YP = predict(model, Xt)
+          YP = if (nrow(Xt)) predict(model, Xt) else numeric(0)
           V[i,j] = sum(R_true_t*(YP==Yt)/pt)
         }
       }
@@ -75,20 +65,18 @@ owl_single <-function(H, A, R2, pi, pentype='lasso', kernel='linear', sigma=c(0.
     nsig=length(sigma)
     V=array(0,c(npar,nsig,m))
     for (i in 1:m){
-      this=(rand!=i)
-      X=H[this,]
-      Y=A[this]
-      R=r[this]
-      Xt=H[!this,]
-      Yt=A[!this]
-      Rt=r[!this]
-      R_true_t = R2[!this]
-      pt=pi[!this]
+      X=cv.data[[i]]$X
+      Y=cv.data[[i]]$Y
+      R=cv.data[[i]]$R
+      Xt=cv.data[[i]]$Xt
+      Yt=cv.data[[i]]$Yt
+      R_true_t=cv.data[[i]]$R_true_t
+      pt=cv.data[[i]]$pt
       for (j in 1:npar){
         for (s in 1:nsig){
           model=wsvm_solve(X,Y,R,'rbf',sigma=sigma[s],C=clinear[j],e=e,solver=solver)
           if (! is.na(max(model$alpha1)) ) {
-            YP=predict(model,Xt)
+            YP=if (nrow(Xt)) predict(model, if (nrow(Xt)==1) as.numeric(Xt) else Xt) else numeric(0)
             V[j,s,i]=sum(R_true_t*(YP==Yt)/pt)
           }
         }
@@ -132,7 +120,8 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
   else if (loss=='l2') method = 'ols'
   else stop(gettextf("Please specify a valid loss function."))
   
-  if(pi[[1]][1]=='estimated' & K > 1) {
+  estimate_pi = pi[[1]][1]=='estimated'
+  if(estimate_pi & K > 1) {
     pi = list()
     for (j in 1:K) {
       Y = AA[[j]]*0.5 + 0.5
@@ -143,10 +132,11 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
       pi[[j]] = exp(pred)/(1 + exp(pred)) * (Y==1) + 1/(1 + exp(pred)) * (Y==0)
     }
   }
-  if(pi[[1]][1]=='estimated' & K==1) {
-    Y = AA*0.5 + 0.5
-    pi_logit = cv.glmnet(H, Y, family = "binomial", nfolds=3)
-    pred = predict(pi_logit, H, s="lambda.min")
+  if(estimate_pi & K==1) {
+    Y = (if (is.list(AA)) AA[[1]] else AA)*0.5 + 0.5
+    Hj = if (is.list(H)) H[[1]] else H
+    pi_logit = cv.glmnet(Hj, Y, family = "binomial", nfolds=3)
+    pred = predict(pi_logit, Hj, s="lambda.min")
     pi = exp(pred)/(1 + exp(pred)) * (Y==1) + 1/(1 + exp(pred)) * (Y==0)
   }
   
@@ -155,12 +145,20 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
     if (!is.list(RR)) RR = list(RR)
     if (!is.list(pi)) pi = list(pi)
   }
+  owl_fit(H, AA, RR, n, K, pi, method, pentype, augment, c, sigma, s, m, solver,
+    estimate_pi=estimate_pi)
+}
+
+# The same backward recursion also fits training folds and replays validation folds.
+owl_fit <- function(H, AA, RR, n, K, pi, method, pentype, augment, c, sigma, s, m, solver,
+                    estimate_pi=FALSE, cv=NULL) {
   select=rep(TRUE,n)
   R_future=rep(0,n)
   prob=rep(1,n)
   
   if (augment == T) {
-    results = owl_aug(X=H, AA, RR, n, K, pi, method, pentype=pentype, clinear=c, sigma=sigma, s=s, m=m)
+    results = owl_aug(X=H, AA, RR, n, K, pi, method, pentype=pentype, clinear=c, sigma=sigma, s=s, m=m,
+      solver=solver, estimate_pi=estimate_pi, cv=cv)
     return(results)
   }
   results=list()
@@ -169,12 +167,33 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
   for (j in K:1) {
     R = (RR[[j]]+R_future)
     prob = prob*pi[[j]]
+    if (method %in% c('hingelinear','hingerbf')) {
+      Hj = if (is.list(H)) H[[j]] else H
+      if (!is.null(cv) && j==cv$target)
+        return(list(H=Hj[select,,drop=FALSE], A=AA[[j]][select], R2=R[select],
+          pi=prob[select], models=results))
+      if (!is.null(cv$fitted)) {
+        results[[j]] = cv$fitted$models[[j]]
+        X = Hj[select,,drop=FALSE]
+        predict_stage = if (method=='hingelinear') predict.linearcl else predict.rbfcl
+        results[[j]]$treatment = if (nrow(X))
+          predict_stage(results[[j]], if (nrow(X)==1) as.numeric(X) else X) else numeric(0)
+      } else {
+        cv.data = if (is.null(cv)) owl_cv_data(H, AA, RR, pi, n, K, j, method, pentype,
+          c, sigma, s, m, solver, results, FALSE, estimate_pi) else NULL
+        stage_c = if (is.null(cv)) c else cv$tuned[[j]]$c
+        stage_sigma = if (is.null(cv)) sigma else cv$tuned[[j]]$sigma
+        stage_n = if (is.null(cv)) sum(select) else length(cv$tuned[[j]]$fit)
+      }
+    }
     
-    if (!is.list(H)) {
+    if (!is.list(H) && is.null(cv$fitted)) {
       if (method=='hingelinear'){
-        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m,solver=solver)
+        results[[j]]=owl_single(H[select,,drop=FALSE],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       } else if (method=='hingerbf'){
-        results[[j]]=owl_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m,solver=solver)
+        results[[j]]=owl_single(H[select,,drop=FALSE],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=stage_sigma,clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       } else if (method=='logitlasso'){
         results[[j]]=owl_logit_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype, method=method, m=m)
       } else if (method=='logit') {
@@ -185,11 +204,13 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
         results[[j]]=owl_l2_single(H[select,],AA[[j]][select],R[select],prob[select],pentype=pentype, method=method, m=m)
       }
     }
-    if (is.list(H)) {
+    if (is.list(H) && is.null(cv$fitted)) {
       if (method=='hingelinear'){
-        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=c,m=m,solver=solver)
+        results[[j]]=owl_single(H[[j]][select,,drop=FALSE],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='linear',clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       } else if (method=='hingerbf'){
-        results[[j]]=owl_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=sigma,clinear=c,m=m,solver=solver)
+        results[[j]]=owl_single(H[[j]][select,,drop=FALSE],AA[[j]][select],R[select],prob[select],pentype=pentype,kernel='rbf',sigma=stage_sigma,clinear=stage_c,m=m,solver=solver,
+          cv.data=cv.data,tune=is.null(cv),n_total=stage_n)
       } else if (method=='logitlasso'){
         results[[j]]=owl_logit_single(H[[j]][select,],AA[[j]][select],R[select],prob[select],pentype=pentype, method=method)
       } else if (method=='logit') {
@@ -206,7 +227,7 @@ owl <- function(H,AA,RR,n,K,pi='estimated', res.lasso=TRUE, loss='hinge', kernel
     }
     select[which(select==TRUE)]=(results[[j]]$treatment==AA[[j]][select])
     
-    if ( j>1 && (sum(select)<3 || min(AA[[j-1]][select])==max(AA[[j-1]][select])) ) {
+    if ( is.null(cv$fitted) && j>1 && (sum(select)<3 || min(AA[[j-1]][select])==max(AA[[j-1]][select])) ) {
       print(c("Too few observations selected for estimation after stage", j))
       has_error = 1
       break
